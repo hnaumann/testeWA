@@ -1,0 +1,25 @@
+{
+  "name": "testewa",
+  "version": "1.0.0",
+  "description": "Teste WA",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hnaumann/testeWA.git"
+  },
+  "keywords": [
+    "nodejs"
+  ],
+  "author": "hans naumann",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hnaumann/testeWA/issues"
+  },
+  "homepage": "https://github.com/hnaumann/testeWA#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
