@@ -1,60 +1,419 @@
 const express = require('express');
 const { route } = require('../app');
 const router = express.Router();
+const mysql = require('../mysql').pool;
 
 // Buscar todos os exames
 router.get('/buscar', (req, res, next) => {
-    res.status(200).send({
-        mensagem: 'Buscou Exames'
+    mysql.getConnection((error, conn) => {
+        if (error) {
+            return res.status(500).send({
+                error: error
+            });
+        }
+        conn.query(
+            `SELECT * 
+               FROM Exame;`,
+            (error, result, fields) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error
+                    });
+                }
+
+                if (result.length == 0) {
+                    return res.status(404).send({
+                        mensagem: 'Nenhum Exame foi encontrato'
+                    })
+                }
+
+                const response = {
+                    Quantidade: result.length,
+                    Exames: result.map(lab => {
+                        return {
+                            idExame: lab.idExame,
+                            nome: lab.Nome,
+                            tipo: lab.Tipo,
+                            Status: lab.Status,
+                            idLaboratorio: lab.idLaboratorio
+                        }
+                    })
+                }
+                return res.status(200).send(response);
+            }
+        );
     });
 });
 
 // Buscar exames por id
-router.get('/buscar/:id', (req, res, next) => {
-    res.status(200).send({
-        mensagem: 'Buscou Exames por ID'
+router.get('/buscarPorId/:idExame', (req, res, next) => {
+    mysql.getConnection((error, conn) => {
+        if (error) {
+            return res.status(500).send({
+                error: error
+            });
+        }
+        conn.query(
+            `SELECT * 
+               FROM Exame 
+              WHERE idExame = ?;`,
+            [req.params.idExame],
+            (error, result, fields) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error
+                    });
+                }
+
+                if (result.length == 0) {
+                    return res.status(404).send({
+                        mensagem: 'Nenhum exame foi encontrato com este ID'
+                    })
+                }
+
+                const response = {
+                    Exames: result.map(lab => {
+                        return {
+                            idExame: lab.idExame,
+                            nome: lab.Nome,
+                            tipo: lab.Tipo,
+                            status: lab.Status,
+                            idLaboratorio: lab.idLaboratorio
+                        }
+                    })
+                }
+
+                return res.status(200).send(response);
+            }
+        );
     });
 });
 
 // Buscar exames por nome
-router.get('/buscar/:nome', (req, res, next) => {
-    res.status(200).send({
-        mensagem: 'Buscou Exames por NOME'
+router.get('/buscarPorNome/:nome', (req, res, next) => {
+    mysql.getConnection((error, conn) => {
+        if (error) {
+            return res.status(500).send({
+                error: error
+            });
+        }
+        conn.query(
+            `SELECT * 
+               FROM Exame 
+              WHERE nome = ?;`,
+            [req.params.nome],
+            (error, result, fields) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error
+                    });
+                }
+
+                if (result.length == 0) {
+                    return res.status(404).send({
+                        mensagem: 'Nenhum exame foi encontrato com este Nome'
+                    })
+                }
+
+                const response = {
+                    Exames: result.map(lab => {
+                        return {
+                            idExame: lab.idExame,
+                            nome: lab.Nome,
+                            tipo: lab.Tipo,
+                            status: lab.Status,
+                            idLaboratorio: lab.idLaboratorio
+                        }
+                    })
+                }
+
+                return res.status(200).send(response);
+            }
+        );
     });
 });
 
 // Buscar exames por tipo
-router.get('/buscar/:tipo', (req, res, next) => {
-    res.status(200).send({
-        mensagem: 'Buscou Exames por TIPO'
+router.get('/buscarPorTipo/:tipo', (req, res, next) => {
+    mysql.getConnection((error, conn) => {
+        if (error) {
+            return res.status(500).send({
+                error: error
+            });
+        }
+        conn.query(
+            `SELECT * 
+               FROM Exame 
+              WHERE tipo = ?;`,
+            [req.params.tipo],
+            (error, result, fields) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error
+                    });
+                }
+
+                if (result.length == 0) {
+                    return res.status(404).send({
+                        mensagem: 'Nenhum exame foi encontrato com este Tipo'
+                    })
+                }
+
+                const response = {
+                    Exames: result.map(lab => {
+                        return {
+                            idExame: lab.idExame,
+                            nome: lab.Nome,
+                            tipo: lab.Tipo,
+                            status: lab.Status,
+                            idLaboratorio: lab.idLaboratorio
+                        }
+                    })
+                }
+
+                return res.status(200).send(response);
+            }
+        );
     });
 });
 
 // Buscar exames por status
-router.get('/buscar/:status', (req, res, next) => {
-    res.status(200).send({
-        mensagem: 'Buscou Exames por STATUS'
+router.get('/buscarPorStatus/:status', (req, res, next) => {
+    mysql.getConnection((error, conn) => {
+        if (error) {
+            return res.status(500).send({
+                error: error
+            });
+        }
+        conn.query(
+            `SELECT * 
+               FROM Exame 
+              WHERE status = ?;`,
+            [req.params.status],
+            (error, result, fields) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error
+                    });
+                }
+
+                if (result.length == 0) {
+                    return res.status(404).send({
+                        mensagem: 'Nenhum exame foi encontrato com este Status'
+                    })
+                }
+
+                const response = {
+                    Exames: result.map(lab => {
+                        return {
+                            idExame: lab.idExame,
+                            nome: lab.Nome,
+                            tipo: lab.Tipo,
+                            status: lab.Status,
+                            idLaboratorio: lab.idLaboratorio
+                        }
+                    })
+                }
+
+                return res.status(200).send(response);
+            }
+        );
     });
 });
 
 // Criar exame
 router.post('/criar', (req, res, next) => {
-    res.status(201).send({
-        mensagem: 'Criou Exames'
+    mysql.getConnection((error, conn) => {
+        if (error) {
+            return res.status(500).send({
+                error: error
+            });
+        }
+
+        conn.query(
+            `SELECT *
+               FROM Laboratorio
+              WHERE idLaboratorio = ?
+                AND Status = 1;`,
+            [req.body.idLaboratorio],
+            (error, result, fields) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error
+                    });
+                }
+                if (result.length == 0) {
+                    return res.status(404).send({
+                        mensagem: 'O laboratório informado não está ativo'
+                    })
+                } else {
+                    if (req.body.status == 'ativo') {
+                        req.body.status = 1
+                    }
+
+                    if (req.body.status == 'inativo') {
+                        req.body.status = 0
+                    }
+
+                    if (req.body.status == 0 || req.body.status == 1) {
+                        conn.query(
+                            `INSERT INTO Exame (Nome, Tipo, Status, idLaboratorio) 
+                             VALUES (?,?,?,?);`,
+                            [req.body.nome, req.body.tipo, req.body.status, req.body.idLaboratorio],
+                            (error, result, field) => {
+                                conn.release();
+                                if (error) {
+                                    return res.status(500).send({
+                                        error: error,
+                                        response: null
+                                    });
+                                }
+                                const response = {
+                                    mensagem: 'Exame inserido com sucesso',
+                                    exameCriado: {
+                                        idExame: result.insertId,
+                                        nome: req.body.nome,
+                                        tipo: req.body.tipo,
+                                        status: req.body.status,
+                                        idLaboratorio: req.body.idLaboratorio
+                                    }
+                                }
+                                res.status(201).send(response);
+                            }
+                        );
+                    } else {
+                        return res.status(404).send({
+                            mensagem: 'Não é possível criar um laboratório com status diferente de ativo, inativo, 0 para ativo ou 1 para inativo'
+                        })
+                    }
+                }
+            }
+        )
     });
 });
 
 // Editar exame
 router.patch('/editar', (req, res, next) => {
-    res.status(201).send({
-        mensagem: 'Editou Exames'
+    mysql.getConnection((error, conn) => {
+        if (error) {
+            return res.status(500).send({
+                error: error
+            });
+        }
+
+        conn.query(
+            `SELECT *
+               FROM Laboratorio
+              WHERE idLaboratorio = ?
+                AND Status = 1`,
+            [req.body.idLaboratorio],
+            (error, result, fields) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error
+                    });
+                }
+                if (result.length == 0) {
+                    return res.status(404).send({
+                        mensagem: 'O laboratório informado não está ativo'
+                    })
+                } else {
+                    conn.query(
+                        `SELECT * 
+                           FROM Exame 
+                          WHERE idExame = ?;`,
+                        [req.body.idExame],
+                        (error, result, fields) => {
+                            if (error) {
+                                return res.status(500).send({
+                                    error: error
+                                });
+                            }
+                            if (result.length == 0) {
+                                return res.status(404).send({
+                                    mensagem: 'Nenhum exame foi encontrato com este ID para ser alterado'
+                                })
+                            } else {
+                                conn.query(
+                                    `UPDATE Exame 
+                                        SET Nome = ?,
+                                            Tipo = ?,
+                                            Status = ?,
+                                            idLaboratorio = ?
+                                      WHERE idExame = ?`,
+                                    [req.body.nome, req.body.tipo, req.body.status, req.body.idLaboratorio, req.body.idExame],
+                                    (error, result, field) => {
+                                        conn.release();
+                                        if (error) {
+                                            return res.status(500).send({
+                                                error: error,
+                                                response: null
+                                            });
+                                        }
+
+                                        const response = {
+                                            mensagem: 'Exame alterado com sucesso'
+                                        }
+
+                                        res.status(202).send(response);
+                                    }
+                                );
+                            }
+                        }
+                    );
+                }
+            }
+        )
     });
 });
 
 // Excluir exame
 router.delete('/excluir', (req, res, next) => {
-    res.status(201).send({
-        mensagem: 'Excluiu Exames'
+    mysql.getConnection((error, conn) => {
+        if (error) {
+            return res.status(500).send({
+                error: error
+            });
+        }
+        conn.query(
+            `SELECT * 
+               FROM Exame 
+              WHERE idExame = ?;`,
+            [req.body.idExame],
+            (error, result, fields) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error
+                    });
+                }
+                if (result.length == 0) {
+                    return res.status(404).send({
+                        mensagem: 'Nenhum exame foi encontrato com este ID para ser removido'
+                    })
+                } else {
+                    conn.query(
+                        `DELETE FROM Exame
+                        WHERE idExame = ?`,
+                        [req.body.idExame],
+                        (error, result, field) => {
+                            conn.release();
+                            if (error) {
+                                return res.status(500).send({
+                                    error: error,
+                                    response: null
+                                });
+                            }
+
+                            const response = {
+                                mensagem: 'Exame removido com sucesso'
+                            }
+
+                            res.status(202).send(response);
+                        }
+                    );
+                }
+            }
+        );
     });
 });
 

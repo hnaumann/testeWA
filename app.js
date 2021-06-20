@@ -1,8 +1,12 @@
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
 
 const rotaLaboratorios = require('./routes/laboratorios');
 const rotaExames = require('./routes/exames');
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.use('/laboratorios', rotaLaboratorios);
 app.use('/exames', rotaExames);
