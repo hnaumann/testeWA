@@ -30,8 +30,7 @@ exports.buscarExames = (req, res, next) => {
                             idExame: lab.idExame,
                             nome: lab.Nome,
                             tipo: lab.Tipo,
-                            Status: lab.Status,
-                            idLaboratorio: lab.idLaboratorio
+                            Status: lab.Status
                         }
                     })
                 }
@@ -72,8 +71,7 @@ exports.buscarExamesPorId = (req, res, next) => {
                             idExame: lab.idExame,
                             nome: lab.Nome,
                             tipo: lab.Tipo,
-                            status: lab.Status,
-                            idLaboratorio: lab.idLaboratorio
+                            status: lab.Status
                         }
                     })
                 }
@@ -115,8 +113,7 @@ exports.buscarExamesPorNome = (req, res, next) => {
                             idExame: lab.idExame,
                             nome: lab.Nome,
                             tipo: lab.Tipo,
-                            status: lab.Status,
-                            idLaboratorio: lab.idLaboratorio
+                            status: lab.Status
                         }
                     })
                 }
@@ -158,8 +155,7 @@ exports.buscarExamesPorTipo = (req, res, next) => {
                             idExame: lab.idExame,
                             nome: lab.Nome,
                             tipo: lab.Tipo,
-                            status: lab.Status,
-                            idLaboratorio: lab.idLaboratorio
+                            status: lab.Status
                         }
                     })
                 }
@@ -211,8 +207,7 @@ exports.buscarExamesPorStatus = (req, res, next) => {
                                 idExame: lab.idExame,
                                 nome: lab.Nome,
                                 tipo: lab.Tipo,
-                                status: lab.Status,
-                                idLaboratorio: lab.idLaboratorio
+                                status: lab.Status
                             }
                         })
                     }
@@ -229,6 +224,7 @@ exports.buscarExamesPorStatus = (req, res, next) => {
 };
 
 exports.buscarExamesLaboratoriosPorNome = (req, res, next) => {
+    global.responseLaboratorio = [];
     mysql.getConnection((error, conn) => {
         if (error) {
             return res.status(500).send({
@@ -237,60 +233,50 @@ exports.buscarExamesLaboratoriosPorNome = (req, res, next) => {
         }
 
         conn.query(
-            `SELECT *
-               FROM Exame
-              WHERE nome = ?`,
+            `SELECT ex.nome as nomeExame,
+            ex.tipo,
+            ex.status as statusExame,
+            lab.nome as nomeLaboratorio,
+            lab.endereco,
+            lab.status as statusLaboratorio
+                    FROM Exame AS ex
+                    INNER JOIN LaboratoriosExames as labex
+                      on labex.idExame = ex.idExame
+                      inner join Laboratorio as lab
+                      on lab.idLaboratorio = labex.idLaboratorio
+                   WHERE ex.nome = ?;`,
             [req.params.nome],
-            (error, resultEx, fields) => {
+            (error, resultExame, fields) => {
                 if (error) {
                     return res.status(500).send({
                         error: error
                     });
                 }
 
-                if (resultEx.length == 0) {
+                if (resultExame.length) {
                     return res.status(404).send({
                         mensagem: 'Nenhum exame foi encontrato com este Nome'
                     })
                 }
 
-                resultEx.forEach(element => {
-                    conn.query(
-                        `SELECT *
-                           FROM Laboratorio
-                          WHERE idLaboratorio = ?;`,
-                        [element.idLaboratorio],
-                        (error, resultLab, fileds) => {
-                            if (error) {
-                                return res.status(500).send({
-                                    error: error
-                                });
-                            }
-
-                            const response = {
-                                Exame: resultEx.map(ex => {
-                                    return {
-                                        idExame: ex.idExame,
-                                        nomeExame: ex.Nome,
-                                        tipo: ex.Tipo,
-                                        statusExame: ex.Status,
-                                        idLaboratorio: ex.idLaboratorio,
-                                        Laboratorio: resultLab.map(lab => {
-                                            return {
-                                                idLaboratorio: lab.idLaboratorio,
-                                                nomeLaboratorio: lab.Nome,
-                                                endereco: lab.Endereco,
-                                                statusLaboratorio: lab.Status
-                                            }
-                                        })
-                                    }
-                                })
-                            }
-
-                            return res.status(200).send(response);
+                resultExame.forEach(element => {
+                    responseLaboratorio = [...responseLaboratorio, {
+                        Laboratorio: {
+                            nomeLaboratorio: element.nomeLaboratorio,
+                            endereco: element.endereco,
+                            statusLaboratorio: element.statusLaboratorio,
                         }
-                    )
+                    }]
                 });
+                
+                return res.status(200).send({
+                    Exame: {
+                        nomeExame: resultExame[0].nomeExame,
+                        tipo: resultExame[0].tipo,
+                        statusExame: resultExame[0].statusExame,
+                    }, ...responseLaboratorio
+                });
+
             }
         )
     });
@@ -304,65 +290,72 @@ exports.criarExame = (req, res, next) => {
             });
         }
 
-        conn.query(
-            `SELECT *
-               FROM Laboratorio
-              WHERE idLaboratorio = ?
-                AND Status = 1;`,
-            [req.body.idLaboratorio],
-            (error, result, fields) => {
-                if (error) {
-                    return res.status(500).send({
-                        error: error
-                    });
-                }
-                if (result.length == 0) {
-                    return res.status(404).send({
-                        mensagem: 'O laboratório informado não está ativo'
-                    })
-                } else {
-                    if (req.body.status == 'ativo') {
-                        req.body.status = 1
+        req.body.idLaboratorio.forEach(idLab => {
+            conn.query(
+                `SELECT *
+                   FROM Laboratorio
+                  WHERE idLaboratorio = ?
+                    AND Status = 1;`,
+                [idLab],
+                (error, result, fields) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error
+                        });
                     }
-
-                    if (req.body.status == 'inativo') {
-                        req.body.status = 0
-                    }
-
-                    if (req.body.status == 0 || req.body.status == 1) {
-                        conn.query(
-                            `INSERT INTO Exame (Nome, Tipo, Status, idLaboratorio) 
-                             VALUES (?,?,?,?);`,
-                            [req.body.nome, req.body.tipo, req.body.status, req.body.idLaboratorio],
-                            (error, result, field) => {
-                                conn.release();
-                                if (error) {
-                                    return res.status(500).send({
-                                        error: error,
-                                        response: null
-                                    });
-                                }
-                                const response = {
-                                    mensagem: 'Exame inserido com sucesso',
-                                    exameCriado: {
-                                        idExame: result.insertId,
-                                        nome: req.body.nome,
-                                        tipo: req.body.tipo,
-                                        status: req.body.status,
-                                        idLaboratorio: req.body.idLaboratorio
-                                    }
-                                }
-                                res.status(201).send(response);
-                            }
-                        );
-                    } else {
+                    if (result.length == 0) {
                         return res.status(404).send({
-                            mensagem: 'Não é possível criar um laboratório com status diferente de ativo, inativo, 0 para ativo ou 1 para inativo'
+                            mensagem: 'O laboratório informado não está ativo'
                         })
+                    } else {
+                        if (req.body.status == 'ativo') {
+                            req.body.status = 1
+                        }
+
+                        if (req.body.status == 'inativo') {
+                            req.body.status = 0
+                        }
+
+                        if (req.body.status == 0 || req.body.status == 1) {
+                            conn.query(
+                                `INSERT INTO Exame (Nome, Tipo, Status) 
+                                 VALUES (?,?,?);`,
+                                [req.body.nome, req.body.tipo, req.body.status],
+                                (error, resultInsertExame, field) => {
+                                    conn.release();
+                                    if (error) {
+                                        return res.status(500).send({
+                                            error: error,
+                                            response: null
+                                        });
+                                    }
+
+                                    conn.query(
+                                        `INSERT INTO LaboratoriosExames (idLaboratorio, idExame)
+                                         VALUES (?,?);`,
+                                        [idLab, resultInsertExame.insertId],
+                                        (error, resultExame, fiefl) => {
+                                            if (error) {
+                                                return res.status(500).send({
+                                                    error: error,
+                                                    response: null
+                                                });
+                                            }
+                                        }
+                                    )
+                                }
+                            );
+                        } else {
+                            return res.status(404).send({
+                                mensagem: 'Não é possível criar um laboratório com status diferente de ativo, inativo, 0 para ativo ou 1 para inativo'
+                            })
+                        }
                     }
                 }
-            }
-        )
+            )
+        });
+
+        res.status(201).send(({ mensagem: 'Exame(s) inserido(s) com sucesso' }));
     });
 };
 
@@ -411,10 +404,9 @@ exports.editarExame = (req, res, next) => {
                                     `UPDATE Exame 
                                         SET Nome = ?,
                                             Tipo = ?,
-                                            Status = ?,
-                                            idLaboratorio = ?
-                                      WHERE idExame = ?`,
-                                    [req.body.nome, req.body.tipo, req.body.status, req.body.idLaboratorio, req.body.idExame],
+                                            Status = ?
+                                      WHERE idExame = ?;`,
+                                    [req.body.nome, req.body.tipo, req.body.status, req.body.idExame],
                                     (error, result, field) => {
                                         conn.release();
                                         if (error) {
@@ -424,11 +416,27 @@ exports.editarExame = (req, res, next) => {
                                             });
                                         }
 
-                                        const response = {
-                                            mensagem: 'Exame alterado com sucesso'
-                                        }
+                                        conn.query(
+                                            `UPDATE LaboratoriosExames
+                                                SET idLaboratorio = ?,
+                                                    idExame = ?
+                                              WHERE idExame = ?;`,
+                                            [req.body.idLaboratorio, req.body.idExame, req.body.idExame],
+                                            (error, result, fields) => {
+                                                if (error) {
+                                                    return res.status(500).send({
+                                                        error: error,
+                                                        response: null
+                                                    });
+                                                }
 
-                                        res.status(202).send(response);
+                                                const response = {
+                                                    mensagem: 'Exame alterado com sucesso'
+                                                }
+
+                                                res.status(202).send(response);
+                                            }
+                                        )
                                     }
                                 );
                             }
@@ -464,25 +472,38 @@ exports.excluirExame = (req, res, next) => {
                     })
                 } else {
                     conn.query(
-                        `DELETE FROM Exame
-                        WHERE idExame = ?`,
+                        `DELETE FROM LaboratoriosExames
+                          WHERE idExame = ?;`,
                         [req.body.idExame],
-                        (error, result, field) => {
-                            conn.release();
+                        (error, result, fields) => {
                             if (error) {
                                 return res.status(500).send({
-                                    error: error,
-                                    response: null
+                                    error: error
                                 });
                             }
 
-                            const response = {
-                                mensagem: 'Exame removido com sucesso'
-                            }
+                            conn.query(
+                                `DELETE FROM Exame
+                                  WHERE idExame = ?`,
+                                [req.body.idExame],
+                                (error, result, field) => {
+                                    conn.release();
+                                    if (error) {
+                                        return res.status(500).send({
+                                            error: error,
+                                            response: null
+                                        });
+                                    }
 
-                            res.status(202).send(response);
+                                    const response = {
+                                        mensagem: 'Exame removido com sucesso'
+                                    }
+
+                                    res.status(202).send(response);
+                                }
+                            );
                         }
-                    );
+                    )
                 }
             }
         );

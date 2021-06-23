@@ -253,13 +253,7 @@ exports.criarLaboratorio = (req, res, next) => {
                         });
                     }
                     const response = {
-                        mensagem: 'Laboratório inserido com sucesso',
-                        laboratorioCriado: {
-                            idLaboratorio: result.insertId,
-                            nome: req.body.nome,
-                            endereco: req.body.endereco,
-                            status: req.body.status
-                        }
+                        mensagem: 'Laboratório inserido com sucesso'
                     }
                     res.status(201).send(response);
                 }
@@ -350,7 +344,7 @@ exports.excluirLaboratorio = (req, res, next) => {
                     })
                 } else {
                     conn.query(
-                        `DELETE FROM Exame
+                        `DELETE FROM LaboratoriosExames
                           WHERE idLaboratorio = ?;`,
                         [req.body.idLaboratorio],
                         (error, result, field) => {
