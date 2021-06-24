@@ -3,7 +3,7 @@
 ## Pré-requisitos
     - Ter instalado MySQL Workbench
     - Ter instalado Postman
-    - Ter instalado Docker
+    - Ter instalado Docker  
 
 ## Imagem Docker do MySQL
     - docker pull mysql
@@ -61,6 +61,9 @@
       CONSTRAINT `fk_Laboratorio_has_Exame_Laboratorio1`
         FOREIGN KEY (`idLaboratorio`)
         REFERENCES `TesteWA`.`Laboratorio` (`idLaboratorio`))
+
+## Para rodar o projeto
+    - npm start   
 
 ## Postman
     - Laboratório:
@@ -120,4 +123,4 @@
             - localhost:3000/exames/excluir
                 {
                     "idExame": 12
-                }
+                }             
