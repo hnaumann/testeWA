@@ -123,7 +123,4 @@
             - localhost:3000/exames/excluir
                 {
                     "idExame": 12
-                }
-
-## Heroku
-                                 
+                }                      
